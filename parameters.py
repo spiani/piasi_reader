@@ -1,0 +1,12 @@
+AMCO = 100
+AMLI = 100
+CCD  =  2
+IMCO = 64
+IMLI = 64
+NBK  =  6
+NCL  =  7
+PN   =  4
+SB   =  3 
+SGI  = 25
+SNOT = 30
+SS   = 8700
