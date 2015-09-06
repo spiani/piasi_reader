@@ -1,7 +1,9 @@
 from struct import unpack
 from numpy import fromstring, float64, int8, uint8, int16, int32, uint32, bool_, dtype, zeros
+from utilities import read_vint
 
-from grh import GRH
+
+from records.grh import GRH
 from parameters import PN, IMLI, IMCO
 
 class GIADR_quality(object):
@@ -33,20 +35,16 @@ class GIADR_quality(object):
         giadr.IDefPsfSondOverSampFactor = SampFactor_elements[1] / (10.0**SampFactor_elements[0])
 
         increase = 100 * PN * 4 
-        giadr.IDefPsfSondY = (fromstring(raw_data[offset : offset + increase], dtype=dt)/1e6).reshape(100,PN)
+        giadr.IDefPsfSondY = (fromstring(raw_data[offset : offset + increase], dtype=dt)/1e6).reshape(PN, 100).T
         offset += increase
 
         increase = 100 * PN * 4 
-        giadr.IDefPsfSondZ = (fromstring(raw_data[offset : offset + increase], dtype=dt)/1e6).reshape(100,PN)
+        giadr.IDefPsfSondZ = (fromstring(raw_data[offset : offset + increase], dtype=dt)/1e6).reshape(PN,100).T
         offset += increase
 
         increase = 100 * 100 * PN * 5
-        PsfSond_raw = fromstring(raw_data[offset : offset + increase], dtype=dui).reshape(100, 100, PN, 5)
+        giadr.IDefPsfSondWgt = read_vint(raw_data[offset : offset + increase]).reshape(PN, 100, 100).T
         offset+= increase
-        IDefPsfSondWgt_int = zeros((100, 100, PN), dtype = uint32)
-        for i in range(4):
-            IDefPsfSondWgt_int += PsfSond_raw[:,:,:,i+1]*(256**(3-i))
-        giadr.IDefPsfSondWgt = int32(IDefPsfSondWgt_int) / 10.0**int8(PsfSond_raw[:,:,:,0])
 
         increase = 4
         giadr.IDefllSSrfNsfirst = unpack('>i',raw_data[offset : offset + increase])[0]
@@ -55,28 +53,19 @@ class GIADR_quality(object):
         offset += increase
         
         increase = 100 * 5
-        IDefllSSrf_raw = fromstring(raw_data[offset : offset + increase], dtype=dui).reshape(100, 5)
+        giadr.IDefllSSrf = read_vint(raw_data[offset : offset + increase])
         offset += increase
-        IDefllSSrf_int = zeros((100,), dtype = uint32)
-        for i in range(4):
-            IDefllSSrf_int += IDefllSSrf_raw[:,i+1]*(256**(3-i))
-        giadr.IDefllSSrf = int32(IDefllSSrf_int) / 10.0**int8(IDefllSSrf_raw[:,0])
 
         increase = 5
-        IDefllSSrfDWn_elements = unpack('>bi', raw_data[offset : offset + increase])
+        giadr.IDefllSSrfDWn = read_vint(raw_data[offset : offset + increase])[0]
         offset += increase
-        giadr.IDefllSSrfDWn = IDefllSSrfDWn_elements[1] / 10.0**IDefllSSrfDWn_elements[0]
 
         increase = IMCO * IMLI * 5
-        IDefIISNeDT_raw = fromstring(raw_data[offset : offset + increase], dtype=dui).reshape(IMCO, IMLI, 5)
+        giadr.IDefIISNeDT = read_vint(raw_data[offset : offset + increase]).reshape(IMLI, IMCO).T
         offset+= increase
-        IDefIISNeDT_int = zeros((IMCO,IMLI), dtype = uint32)
-        for i in range(4):
-            IDefIISNeDT_int += IDefIISNeDT_raw[:,:,i+1]*(256**(3-i))
-        giadr.IDefIISNeDT = int32(IDefIISNeDT_int) / 10.0**int8(IDefIISNeDT_raw[:,:,0])
 
         increase = IMCO * IMLI * 1
-        giadr.IDefDptIISDeadPix = fromstring(raw_data[offset : offset + increase], dtype=bool_).reshape(IMCO, IMLI)
+        giadr.IDefDptIISDeadPix = fromstring(raw_data[offset : offset + increase], dtype=bool_).reshape(IMLI, IMCO)
         offset+= increase        
                 
         assert grh.record_size == offset + GRH.size 

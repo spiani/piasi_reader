@@ -2,7 +2,7 @@ from struct import unpack
 from numpy import fromstring, dtype, int8, int16, int32, uint8, uint16, uint32, bool_, arange, newaxis, zeros, float64
 from utilities import read_vint, read_short_date, where_greater
 
-from grh import GRH
+from records.grh import GRH
 from parameters import AMCO, AMLI, CCD, IMLI, IMCO, NBK, NCL, PN, SB, SGI, SNOT, SS
 
 class MDR(object):
@@ -48,15 +48,15 @@ class MDR(object):
         offset += increase
 
         increase = 2 * PN * SNOT * 5
-        mdr.GEPSLocIasiAvhrr_IASI = read_vint(raw_data[offset : offset + increase]).reshape(2, PN, SNOT)
+        mdr.GEPSLocIasiAvhrr_IASI = read_vint(raw_data[offset : offset + increase]).reshape(SNOT, PN, 2).T
         offset+= increase
 
         increase = 2 * SGI * SNOT * 5
-        mdr.GEPSLocIasiAvhrr_IIS = read_vint(raw_data[offset : offset + increase]).reshape(2, SGI, SNOT)
+        mdr.GEPSLocIasiAvhrr_IIS = read_vint(raw_data[offset : offset + increase]).reshape(SNOT, SGI, 2).T
         offset+= increase
 
         increase = 6 * SNOT * 1
-        mdr.OBT = fromstring(raw_data[offset : offset + increase], dtype=di).reshape(6, SNOT)
+        mdr.OBT = fromstring(raw_data[offset : offset + increase], dtype=di).reshape(SNOT, 6).T
         offset += increase
         
         increase = SNOT * 6
@@ -100,24 +100,24 @@ class MDR(object):
         offset += increase
 
         increase = IMCO * IMLI * SNOT * 2
-        mdr.GIrcImage = fromstring(raw_data[offset : offset + increase], dtype=dus).reshape(IMCO, IMLI, SNOT) 
+        mdr.GIrcImage = fromstring(raw_data[offset : offset + increase], dtype=dus).reshape(SNOT, IMLI, IMCO).T 
         offset += increase
 
         if grh.record_subclass_version == 4:
             increase = PN * SNOT * 1
-            mdr.GQisFlagQual = fromstring(raw_data[offset : offset + increase], dtype=bool_).reshape(PN, SNOT)
+            mdr.GQisFlagQual = fromstring(raw_data[offset : offset + increase], dtype=bool_).reshape(SNOT, PN).T
             offset += increase
         elif grh.record_subclass_version == 5:
             increase = SB * PN * SNOT * 1
-            mdr.GQisFlagQual_SCV5 = fromstring(raw_data[offset : offset + increase], dtype=bool_).reshape(SB, PN, SNOT)
+            mdr.GQisFlagQual_SCV5 = fromstring(raw_data[offset : offset + increase], dtype=bool_).reshape(SNOT, PN, SB).T
             offset += increase
 
             increase = PN * SNOT * 2
-            mdr.GQisFlagQualDetailed = fromstring(raw_data[offset : offset + increase], dtype=ds).reshape(PN, SNOT)
+            mdr.GQisFlagQualDetailed = fromstring(raw_data[offset : offset + increase], dtype=ds).reshape(SNOT, PN).T
             offset += increase
 
         increase = 5
-        mdr.GQisQualIndex = read_vint(raw_data[offset : offset + increase])[0] 
+        mdr.GQisQualIndex = read_vint(raw_data[offset : offset + increase])[0]
         offset += increase
 
         increase = 5
@@ -145,27 +145,27 @@ class MDR(object):
         offset += increase
 
         increase = 2 * PN * SNOT * 4
-        mdr.GGeoSondLoc = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(2, PN, SNOT) / 1e06 
+        mdr.GGeoSondLoc = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, PN, 2).T / 1e06 
         offset += increase
 
         increase = 2 * PN * SNOT * 4
-        mdr.GGeoSondAnglesMETOP = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(2, PN, SNOT) / 1e06 
+        mdr.GGeoSondAnglesMETOP = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, PN, 2).T / 1e06 
         offset += increase
 
         increase = 2 * SGI * SNOT * 4
-        mdr.GGeoIISAnglesMETOP = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(2, SGI, SNOT) / 1e06 
+        mdr.GGeoIISAnglesMETOP = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, SGI, 2).T / 1e06 
         offset += increase
 
         increase = 2 * PN * SNOT * 4
-        mdr.GGeoSondAnglesSUN = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(2, PN, SNOT) / 1e06 
+        mdr.GGeoSondAnglesSUN = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, PN, 2).T / 1e06 
         offset += increase
 
         increase = 2 * SGI * SNOT * 4
-        mdr.GGeoIISAnglesSUN = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(2, SGI, SNOT) / 1e06 
+        mdr.GGeoIISAnglesSUN = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, SGI, 2).T / 1e06 
         offset += increase
 
         increase = 2 * SGI * SNOT * 4
-        mdr.GGeoIISLoc = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(2, SGI, SNOT) / 1e06 
+        mdr.GGeoIISLoc = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, SGI, 2).T / 1e06 
         offset += increase
 
         increase = 4
@@ -191,12 +191,12 @@ class MDR(object):
 
         mdr.GS1cSpect = zeros((SS, PN, SNOT), dtype=float64)
         increase = SS * PN * SNOT * 2
-        GS1cSpect = fromstring(raw_data[offset : offset + increase], dtype=ds).reshape(SS, PN, SNOT)
+        GS1cSpect = fromstring(raw_data[offset : offset + increase], dtype=ds).reshape(SNOT, PN, SS).T
         offset += increase
         mdr.GS1cSpect[0:num_ch,:,:] = GS1cSpect[0:num_ch,:,:] / 10.**rad_sfs[:, newaxis, newaxis]
 
         increase = CCD * 100 * 5
-        mdr.IDefCovarMatEigenVal1c = read_vint(raw_data[offset : offset + increase]).reshape(CCD, 100)
+        mdr.IDefCovarMatEigenVal1c = read_vint(raw_data[offset : offset + increase]).reshape(100, CCD).T
         offset+= increase
 
         increase = NBK * 4
@@ -204,31 +204,31 @@ class MDR(object):
         offset += increase
 
         increase = PN * SNOT * 4
-        mdr.GCcsRadAnalNbClass = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(PN, SNOT) 
+        mdr.GCcsRadAnalNbClass = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, PN).T 
         offset += increase
         
         increase = NCL * PN * SNOT * 5
-        mdr.GCcsRadAnalWgt = read_vint(raw_data[offset : offset + increase]).reshape(NCL, PN, SNOT)
+        mdr.GCcsRadAnalWgt = read_vint(raw_data[offset : offset + increase]).reshape(SNOT, PN, NCL).T
         offset+= increase
 
         increase = NCL * PN * SNOT * 4
-        mdr.GCcsRadAnalY = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(NCL, PN, SNOT)/ 1e06 
+        mdr.GCcsRadAnalY = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, PN, NCL).T/ 1e06 
         offset+= increase
 
         increase = NCL * PN * SNOT * 4
-        mdr.GCcsRadAnalZ = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(NCL, PN, SNOT)/ 1e06 
+        mdr.GCcsRadAnalZ = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, PN, NCL).T/ 1e06 
         offset+= increase
 
         increase = NBK * NCL * PN * SNOT * 5
-        mdr.GCcsRadAnalMean = read_vint(raw_data[offset : offset + increase]).reshape(NBK, NCL, PN, SNOT)
+        mdr.GCcsRadAnalMean = read_vint(raw_data[offset : offset + increase]).reshape(SNOT, PN, NCL, NBK).T
         offset+= increase
 
         increase = NBK * NCL * PN * SNOT * 5
-        mdr.GCcsRadAnalStd = read_vint(raw_data[offset : offset + increase]).reshape(NBK, NCL, PN, SNOT)
+        mdr.GCcsRadAnalStd = read_vint(raw_data[offset : offset + increase]).reshape(SNOT, PN, NCL, NBK).T
         offset+= increase
 
         increase = AMCO * AMLI * SNOT * 1
-        mdr.GCcsImageClassified = fromstring(raw_data[offset : offset + increase], dtype=dui).reshape(AMCO, AMLI, SNOT) 
+        mdr.GCcsImageClassified = fromstring(raw_data[offset : offset + increase], dtype=dui).reshape(SNOT, AMLI, AMCO).T 
         offset+= increase
 
         increase = 4
@@ -236,7 +236,7 @@ class MDR(object):
         offset+= increase
 
         increase = SNOT * 2
-        mdr.GCcsImageClassifiedNbLin = fromstring(raw_data[offset : offset + increase], dtype=ds) 
+        mdr.GCcsImageClassifiedNbLin = fromstring(raw_data[offset : offset + increase], dtype=ds)
         offset+= increase
 
         increase = SNOT * 2
@@ -252,7 +252,7 @@ class MDR(object):
         offset+= increase
 
         increase = NCL * SNOT * 1
-        mdr.GCcsRadAnalType = fromstring(raw_data[offset : offset + increase], dtype=bool_).reshape(NCL, SNOT) 
+        mdr.GCcsRadAnalType = fromstring(raw_data[offset : offset + increase], dtype=bool_).reshape(SNOT, NCL).T 
         offset+= increase
 
         if grh.record_subclass_version == 5:
