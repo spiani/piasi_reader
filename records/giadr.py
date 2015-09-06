@@ -2,11 +2,11 @@ from struct import unpack
 from numpy import fromstring, float64, int8, uint8, int16, int32, uint32, bool_, dtype, zeros
 from utilities import read_vint
 
-
+from records.record_content import interpreted_content
 from records.grh import GRH
 from parameters import PN, IMLI, IMCO
 
-class GIADR_quality(object):
+class GIADR_quality(interpreted_content):
 
     @staticmethod
     def read(f, grh):
@@ -89,7 +89,7 @@ class GIADR_quality(object):
         return output 
         
 
-class GIADR_scale_factors(object):
+class GIADR_scale_factors(interpreted_content):
 
     @staticmethod
     def read(f, grh):

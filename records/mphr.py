@@ -1,189 +1,204 @@
-class MPHR(object):
+from sys import version_info
+
+from records.record_content import interpreted_content
+from records.grh import GRH
+
+# Get python major version
+py_version = int(version_info[0])
+
+
+class MPHR(interpreted_content):
 
     @staticmethod
-    def read_mphr(f):
+    def read_mphr(f, grh):
         mphr = MPHR()
 
-        product_name = f.readline()
+        data_size = grh.record_size - GRH.size
+        raw_data = f.read(data_size)
+        if py_version > 2:
+            raw_data = raw_data.decode('ASCII')
+        data = raw_data.split('\n')
+
+        product_name = data[0]
         mphr.product_name = product_name.split('=')[1].strip()
         
-        parent_product_name1 = f.readline()
+        parent_product_name1 = data[1]
         mphr.parent_product_name1 = parent_product_name1.split('=')[1].strip()
 
-        parent_product_name2 = f.readline()
+        parent_product_name2 = data[2]
         mphr.parent_product_name2 = parent_product_name2.split('=')[1].strip()
 
-        parent_product_name3 = f.readline()
+        parent_product_name3 = data[3]
         mphr.parent_product_name3 = parent_product_name3.split('=')[1].strip()
 
-        parent_product_name4 = f.readline()
+        parent_product_name4 = data[4]
         mphr.parent_product_name4 = parent_product_name4.split('=')[1].strip()
 
-        instrument_id = f.readline()
+        instrument_id = data[5]
         mphr.instrument_id = instrument_id.split('=')[1].strip()
 
-        instrument_model = f.readline()
+        instrument_model = data[6]
         mphr.instrument_model = instrument_model.split('=')[1].strip()
 
-        product_type = f.readline()
+        product_type = data[7]
         mphr.product_type = product_type.split('=')[1].strip()
         
-        processing_level = f.readline()
+        processing_level = data[8]
         mphr.processing_level = processing_level.split('=')[1].strip()
         
-        spacecraft_id = f.readline()
+        spacecraft_id = data[9]
         mphr.spacecraft_id = spacecraft_id.split('=')[1].strip()
         
-        sensing_start = f.readline()
+        sensing_start = data[10]
         mphr.sensing_start = sensing_start.split('=')[1].strip()
         
-        sensing_end = f.readline()
+        sensing_end = data[11]
         mphr.sensing_end = sensing_end.split('=')[1].strip()
         
-        sensing_start_theoretical = f.readline()
+        sensing_start_theoretical = data[12]
         mphr.sensing_start_theoretical = sensing_start_theoretical.split('=')[1].strip()
         
-        sensing_end_theoretical = f.readline()
+        sensing_end_theoretical = data[13]
         mphr.sensing_end_theoretical = sensing_end_theoretical.split('=')[1].strip()
         
-        processing_centre = f.readline()
+        processing_centre = data[14]
         mphr.processing_centre = processing_centre.split('=')[1].strip()
         
-        processor_major_version = f.readline()
+        processor_major_version = data[15]
         processor_major_version_raw = processor_major_version.split('=')[1].strip()
         if processor_major_version_raw == 'xxxxx':
             processor_major_version_raw = None
         mphr.processor_major_version = int(processor_major_version_raw)
         
-        processor_minor_version = f.readline()
+        processor_minor_version = data[16]
         processor_minor_version_raw = processor_minor_version.split('=')[1].strip()
         if processor_minor_version_raw == 'xxxxx':
             processor_minor_version_raw = None
         mphr.processor_minor_version = int(processor_minor_version_raw)
 
-        format_major_version = f.readline()
+        format_major_version = data[17]
         format_major_version_raw = format_major_version.split('=')[1].strip()
         if format_major_version_raw == 'xxxxx':
             format_major_version_raw = None
         mphr.format_major_version = int(format_major_version_raw)
     
-        format_minor_version = f.readline()
+        format_minor_version = data[18]
         format_minor_version_raw = format_minor_version.split('=')[1].strip()
         if format_minor_version_raw == 'xxxxx':
             format_minor_version_raw = None
         mphr.format_minor_version = int(format_minor_version_raw)
         
-        processing_time_start = f.readline()
+        processing_time_start = data[19]
         mphr.processing_time_start = processing_time_start.split('=')[1].strip()
         
-        processing_time_end = f.readline()
+        processing_time_end = data[20]
         mphr.processing_time_end = processing_time_end.split('=')[1].strip()
         
-        processing_mode = f.readline()
+        processing_mode = data[21]
         mphr.processing_mode = processing_mode.split('=')[1].strip()
         
-        disposition_mode = f.readline()
+        disposition_mode = data[22]
         mphr.disposition_mode = disposition_mode.split('=')[1].strip()
         
-        receiving_ground_station = f.readline()
+        receiving_ground_station = data[23]
         mphr.receiving_ground_station = receiving_ground_station.split('=')[1].strip()
         
-        receive_time_start = f.readline()
+        receive_time_start = data[24]
         mphr.receive_time_start = receive_time_start.split('=')[1].strip()
         
-        receive_time_end = f.readline()
+        receive_time_end = data[25]
         mphr.receive_time_end = receive_time_end.split('=')[1].strip()
         
-        orbit_start = f.readline()
+        orbit_start = data[26]
         mphr.orbit_start = int(orbit_start.split('=')[1].strip())
         
-        orbit_end = f.readline()
+        orbit_end = data[27]
         mphr.orbit_end = int(orbit_end.split('=')[1].strip())
         
-        actual_product_size = f.readline()
+        actual_product_size = data[28]
         mphr.actual_product_size = int(actual_product_size.split('=')[1].strip())
 
-        state_vector_time = f.readline()
+        state_vector_time = data[29]
         mphr.state_vector_time = state_vector_time.split('=')[1].strip()
 
         scale = 1e0
-        semi_major_axis = f.readline()
+        semi_major_axis = data[30]
         mphr.semi_major_axis = float(semi_major_axis.split('=')[1].strip())/scale
 
         scale = 1e6
-        eccentricity = f.readline()
+        eccentricity = data[31]
         mphr.eccentricity = float(eccentricity.split('=')[1].strip())/scale
 
         scale = 1e3
-        inclination = f.readline()
+        inclination = data[32]
         mphr.inclination = float(inclination.split('=')[1].strip())/scale
 
         scale = 1e3
-        perigee_argument = f.readline()
+        perigee_argument = data[33]
         mphr.perigee_argument = float(perigee_argument.split('=')[1].strip())/scale
 
         scale = 1e3
-        right_ascension = f.readline()
+        right_ascension = data[34]
         mphr.right_ascension = float(right_ascension.split('=')[1].strip())/scale
 
         scale = 1e3
-        mean_anomaly = f.readline()
+        mean_anomaly = data[35]
         mphr.mean_anomaly = float(mean_anomaly.split('=')[1].strip())/scale
 
         scale = 1e3
-        x_position = f.readline()
+        x_position = data[36]
         mphr.x_position = float(x_position.split('=')[1].strip())/scale
         
         scale = 1e3
-        y_position = f.readline()
+        y_position = data[37]
         mphr.y_position = float(y_position.split('=')[1].strip())/scale
         
         scale = 1e3
-        z_position = f.readline()
+        z_position = data[38]
         mphr.z_position = float(z_position.split('=')[1].strip())/scale
         
         scale = 1e3
-        x_velocity = f.readline()
+        x_velocity = data[39]
         mphr.x_velocity = float(x_velocity.split('=')[1].strip())/scale
         
         scale = 1e3
-        y_velocity = f.readline()
+        y_velocity = data[40]
         mphr.y_velocity = float(y_velocity.split('=')[1].strip())/scale
         
         scale = 1e3
-        z_velocity = f.readline()
+        z_velocity = data[41]
         mphr.z_velocity = float(z_velocity.split('=')[1].strip())/scale
         
         scale = 1e0
-        earth_sun_distance_ratio = f.readline()
+        earth_sun_distance_ratio = data[42]
         mphr.earth_sun_distance_ratio = float(earth_sun_distance_ratio.split('=')[1].strip())/scale
         
         scale = 1e0
-        location_tolerance_radial = f.readline()
+        location_tolerance_radial = data[43]
         mphr.location_tolerance_radial = float(location_tolerance_radial.split('=')[1].strip())/scale
         
         scale = 1e0
-        location_tolerance_crosstrack = f.readline()
+        location_tolerance_crosstrack = data[44]
         mphr.location_tolerance_crosstrack = float(location_tolerance_crosstrack.split('=')[1].strip())/scale
         
         scale = 1e0
-        location_tolerance_alongtrack = f.readline()
+        location_tolerance_alongtrack = data[45]
         mphr.location_tolerance_alongtrack = float(location_tolerance_alongtrack.split('=')[1].strip())/scale
         
         scale = 1e3
-        yaw_error = f.readline()
+        yaw_error = data[46]
         mphr.yaw_error = float(yaw_error.split('=')[1].strip())/scale
         
         scale = 1e3
-        roll_error = f.readline()
+        roll_error = data[47]
         mphr.roll_error = float(roll_error.split('=')[1].strip())/scale
         
         scale = 1e3
-        pitch_error = f.readline()
+        pitch_error = data[48]
         mphr.pitch_error = float(pitch_error.split('=')[1].strip())/scale
         
         scale = 1e3
-        subsat_latitude_start = f.readline()
+        subsat_latitude_start = data[49]
         subsat_latitude_start_raw = subsat_latitude_start.split('=')[1].strip()
         if 'x' in subsat_latitude_start_raw:
             mphr.subsat_latitude_start = None
@@ -191,7 +206,7 @@ class MPHR(object):
             mphr.subsat_latitude_start = float(subsat_latitude_start_raw)/scale
         
         scale = 1e3
-        subsat_longitude_start = f.readline()
+        subsat_longitude_start = data[50]
         subsat_longitude_start_raw = subsat_longitude_start.split('=')[1].strip()
         if 'x' in subsat_longitude_start_raw:
             mphr.subsat_longitude_start = None
@@ -199,7 +214,7 @@ class MPHR(object):
             mphr.subsat_longitude_start = float(subsat_longitude_start_raw)/scale
         
         scale = 1e3
-        subsat_latitude_end = f.readline()
+        subsat_latitude_end = data[51]
         subsat_latitude_end_raw = subsat_latitude_end.split('=')[1].strip()
         if 'x' in subsat_latitude_end_raw:
             mphr.subsat_latitude_end = None
@@ -207,76 +222,76 @@ class MPHR(object):
             mphr.subsat_latitude_end = float(subsat_latitude_end_raw)/scale
         
         scale = 1e3
-        subsat_longitude_end = f.readline()
+        subsat_longitude_end = data[52]
         subsat_longitude_end_raw = subsat_longitude_end.split('=')[1].strip()
         if 'x' in subsat_longitude_end_raw:
             mphr.subsat_longitude_end = None
         else:
             mphr.subsat_longitude_end = float(subsat_longitude_end_raw)/scale
         
-        leap_second = f.readline()
+        leap_second = data[53]
         mphr.leap_second = int(leap_second.split('=')[1].strip())
         
-        leap_second_utc = f.readline()
+        leap_second_utc = data[54]
         mphr.leap_second_utc = leap_second_utc.split('=')[1].strip()
         
-        total_records = f.readline()
+        total_records = data[55]
         mphr.total_records = int(total_records.split('=')[1].strip())
         
-        total_mphr = f.readline()
+        total_mphr = data[56]
         mphr.total_mphr = int(total_mphr.split('=')[1].strip())
         
-        total_sphr = f.readline()
+        total_sphr = data[57]
         mphr.total_sphr = int(total_sphr.split('=')[1].strip())
         
-        total_ipr = f.readline()
+        total_ipr = data[58]
         mphr.total_ipr = int(total_ipr.split('=')[1].strip())
         
-        total_geadr = f.readline()
+        total_geadr = data[59]
         mphr.total_geadr = int(total_geadr.split('=')[1].strip())
         
-        total_giadr = f.readline()
+        total_giadr = data[60]
         mphr.total_giadr = int(total_giadr.split('=')[1].strip())
         
-        total_veadr = f.readline()
+        total_veadr = data[61]
         mphr.total_veadr = int(total_veadr.split('=')[1].strip())
         
-        total_viadr = f.readline()
+        total_viadr = data[62]
         mphr.total_viadr = int(total_viadr.split('=')[1].strip())
         
-        total_mdr = f.readline()
+        total_mdr = data[63]
         mphr.total_mdr = int(total_mdr.split('=')[1].strip())
         
-        count_degraded_inst_mdr = f.readline()
+        count_degraded_inst_mdr = data[64]
         mphr.count_degraded_inst_mdr = int(count_degraded_inst_mdr.split('=')[1].strip())
         
-        count_degraded_proc_mdr = f.readline()
+        count_degraded_proc_mdr = data[65]
         mphr.count_degraded_proc_mdr = int(count_degraded_proc_mdr.split('=')[1].strip())
         
-        count_degraded_inst_mdr_blocks = f.readline()
+        count_degraded_inst_mdr_blocks = data[66]
         mphr.count_degraded_inst_mdr_blocks = int(count_degraded_inst_mdr_blocks.split('=')[1].strip())
         
-        count_degraded_proc_mdr_blocks = f.readline()
+        count_degraded_proc_mdr_blocks = data[67]
         mphr.count_degraded_proc_mdr_blocks = int(count_degraded_proc_mdr_blocks.split('=')[1].strip())
         
-        duration_of_product = f.readline()
+        duration_of_product = data[68]
         mphr.duration_of_product = int(duration_of_product.split('=')[1].strip())
         
-        milliseconds_of_data_present = f.readline()
+        milliseconds_of_data_present = data[69]
         milliseconds_of_data_present_raw = milliseconds_of_data_present.split('=')[1].strip()
         if 'x' in milliseconds_of_data_present_raw:
             mphr.milliseconds_of_data_present = None
         else:
             mphr.milliseconds_of_data_present = int(milliseconds_of_data_present_raw)
         
-        milliseconds_of_data_missing = f.readline()
+        milliseconds_of_data_missing = data[70]
         milliseconds_of_data_missing_raw = milliseconds_of_data_missing.split('=')[1].strip()
         if 'x' in milliseconds_of_data_missing_raw:
             mphr.milliseconds_of_data_missing = None
         else:
             mphr.milliseconds_of_data_missing = int(milliseconds_of_data_missing_raw)
         
-        subsetted_product = f.readline()
+        subsetted_product = data[71]
         subsetted_product_raw = subsetted_product.split('=')[1].strip()
         if subsetted_product_raw == 'T':
             mphr.subsetted_product = True

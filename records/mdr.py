@@ -2,10 +2,11 @@ from struct import unpack
 from numpy import fromstring, dtype, int8, int16, int32, uint8, uint16, uint32, bool_, arange, newaxis, zeros, float64
 from utilities import read_vint, read_short_date, where_greater
 
+from records.record_content import interpreted_content
 from records.grh import GRH
 from parameters import AMCO, AMLI, CCD, IMLI, IMCO, NBK, NCL, PN, SB, SGI, SNOT, SS
 
-class MDR(object):
+class MDR(interpreted_content):
 
     @staticmethod
     def read(raw_data, grh, giadr_sf):

@@ -3,6 +3,7 @@ from __future__ import print_function, division
 import numpy as np
 from os.path import getsize, join
 
+from records.record_content import uninterpreted_content
 from records.grh import GRH
 from records.mdr import MDR
 from records.mphr import MPHR
@@ -11,55 +12,119 @@ from records.giadr import GIADR_quality, GIADR_scale_factors
 from parameters import PN, SNOT
 
 
-IASI_FILENAME = '/media/step/Volume/l2vdp/my_tests/bin/IASI_xxx_1C_M02_20120323201748Z_20120323202228Z_N_O_20120330080026Z.nat'
-
 class MphrNotFoundException(Exception):
+    """A error that happens if the file do not has a MPHR"""
     pass
 
 class GiadrQualityNotFoundException(Exception):
+    """A error that happens if the file do not has a GIADR quality"""
     pass
 
 class GiadrScalefactorsNotFoundException(Exception):
+    """A error that happens if the file do not has a GIADR scalefactor"""
     pass
 
 class NotSoManyRecordsException(ValueError):
+    """
+    This error is raised if something tries to access to a record whose
+    number is greater than the total number of records
+    """
     pass
 
 class Record(object):
+    """
+    The Record is the unit of information of the IASI files. Every file is composed
+    by one or more records. Every record is made of two elements:
+      - a grh which contains some metadata about the record
+      - a content, i.e. the real data
+
+    While in principle it is possible to create a record calling the __init__ method
+    and passing a gdr object and the content, usually a record is created buy the read
+    method starting from a file
+
+    Args:
+        - *grh*: a GRH object
+        - *content*: a record_content object
+    """
     def __init__(self, grh, content):
         self.__grh = grh
         self.__content = content
 
     @property
     def type(self):
+        """
+        The type of the record as string. It could be one of the following:
+          - MPHR
+          - SPHR
+          - IPR
+          - GEADR
+          - GIADR
+          - VEADR
+          - VIADR
+          - MDR
+        """
         return self.__grh.record_class
     
     @property
     def size(self):
+        """
+        The dimension in bytes of the record. It also includes the dimension
+        of the grh
+        """
         return self.__grh.record_size
 
     @property
     def grh(self):
+        """
+        The grh of the record
+        """
         return self.__grh
 
     @property
     def content(self):
+        """
+        The content of the record. If the record is interpreted, it is
+        an object that store all the information read; if not, it is just
+        a sequence of bytes.
+        """
         return self.__content
+
+    @property
+    def interpreted(self):
+        """
+        A boolean value that is True if the record is interpreted.
+        """
+        return self.content.interpreted
     
     @staticmethod
     def read(f):
+        """
+        Create a Record object starting from a file descriptor. If the
+        record do not requires other informations, it will also be
+        interpreted (for example for the mphr record). Otherwise, it
+        will be returned as not interpreted (this is expecially true for
+        the mdr records which require a GIADR scalefactor record)
+
+        Args:
+            -*f*: A file descriptor
+
+        Returns:
+            A Record object
+        """
         grh = GRH.read_grh(f)
         if grh.record_class == 'MPHR':
-            content = MPHR.read_mphr(f)
+            content = MPHR.read_mphr(f, grh)
         elif grh.record_class == 'GIADR':
             if grh.record_subclass == 0:
                 content = GIADR_quality.read(f, grh)
             elif grh.record_subclass == 1:
                 content = GIADR_scale_factors.read(f, grh)
             else:
-                content = f.read(grh.record_size - GRH.size)
+                data = f.read(grh.record_size - GRH.size)
+                content = uninterpreted_content(data)
         else:
-            content = f.read(grh.record_size - GRH.size)
+            data = f.read(grh.record_size - GRH.size)
+            content = uninterpreted_content(data)
         return Record(grh, content)
 
 
@@ -67,7 +132,7 @@ class IasiL1cNativeFile(object):
     def __init__(self, filename):
         self.__record_list = []
         self.__size = getsize(filename)
-        
+
         # Read content from the file
         bytes_read = 0
         with open(filename, 'rb') as iasi_file:
@@ -79,24 +144,54 @@ class IasiL1cNativeFile(object):
 
     @property
     def size(self):
+        """
+        An integer which is the size of the file in bytes
+        """
         return self.__size
 
     @property
     def n_of_records(self):
+        """
+        An integer which is the number of the records saved in the file
+        """
         return len(self.__record_list)
-    
+
     def get_record(self, i):
+        """
+        Return the i-th record saved inside the file
+
+        Args:
+            - *i*: an integer between 0 and n_of_records
+
+        Returns:
+            An object of the Record class
+        """
+
         if i>= self.n_of_records:
             raise NotSoManyRecordsException
         return self.__record_list[i]
-    
+
     def get_mphr(self):
+        """
+        Return the record with the mphr of the file.
+
+        Returns:
+            An object of the Record class
+        """
+
         mphr_records = [rcd for rcd in self.__record_list if rcd.type == 'MPHR']
         if len(mphr_records) == 0:
             raise MphrNotFoundException
         return mphr_records[0].content
 
     def get_giadr_quality(self):
+        """
+        Return the record with the GIADR quality of the file.
+
+        Returns:
+            An object of the Record class
+        """
+
         giadr_records = [rcd for rcd in self.__record_list 
                          if rcd.type == 'GIADR' and rcd.grh.record_subclass == 0]
         if len(giadr_records) == 0:
@@ -104,6 +199,13 @@ class IasiL1cNativeFile(object):
         return giadr_records[0].content
 
     def get_giadr_scalefactors(self):
+        """
+        Return the record with the GIADR scalefactors of the file.
+
+        Returns:
+            An object of the Record class
+        """
+
         giadr_records = [rcd for rcd in self.__record_list 
                          if rcd.type == 'GIADR' and rcd.grh.record_subclass == 1]
         if len(giadr_records) == 0:
@@ -111,6 +213,12 @@ class IasiL1cNativeFile(object):
         return giadr_records[0].content
     
     def get_mdrs(self):
+        """
+        Return a list of all the records of mdr type
+
+        Returns:
+            A list of record objects
+        """
         return [r.content for r in self.__record_list if r.type == "MDR"]
 
     def __read_mdrs(self):
@@ -123,41 +231,76 @@ class IasiL1cNativeFile(object):
             self.__record_list[i] = Record(mdr_record.grh, new_content)
 
     def get_latitudes(self):
+        """
+        Return a numpy array with all the latitudes read from all the records
+        of the file.
+        """
         mdrs = self.get_mdrs()
         latitudes_list = [mdr.GGeoSondLoc[1,:].T for mdr in mdrs]
         return np.concatenate(latitudes_list)
 
     def get_longitudes(self):
+        """
+        Return a numpy array with all the longitudes read from all the records
+        of the file.
+        """
         mdrs = self.get_mdrs()
         longitudes_list = [mdr.GGeoSondLoc[0,:].T for mdr in mdrs]
         return np.concatenate(longitudes_list)
 
     def get_radiances(self):
+        """
+        Return a numpy array with all the radiances read from all the records
+        of the file.
+        """
+
         mdrs = self.get_mdrs()
         radiances_list = [mdr.GS1cSpect for mdr in mdrs]
         return np.concatenate(radiances_list).T
         
     def get_zenith_angles(self):
+        """
+        Return an array with all the zenith angles read from all the records
+        of the file.
+        """
         mdrs = self.get_mdrs()
         zenith_angles_list = [mdr.GGeoSondAnglesMETOP[0,:].T for mdr in mdrs]
         return np.concatenate(zenith_angles_list)
 
     def get_solar_zenith_angles(self):
+        """
+        Return an array with all the solar zenith angles read from all the records
+        of the file.
+        """
         mdrs = self.get_mdrs()
         solar_zenith_angles_list = [mdr.GGeoSondAnglesSUN[0,:].T for mdr in mdrs]
         return np.concatenate(solar_zenith_angles_list)
 
     def get_solar_azimuth_angles(self):
+        """
+        Return an array with all the solar azimuth angles read from all the records
+        of the file.
+        """
         mdrs = self.get_mdrs()
         solar_azimuth_angles_list = [mdr.GGeoSondAnglesSUN[1,:].T for mdr in mdrs]
         return np.concatenate(solar_azimuth_angles_list)
 
-    def get_avhrr_cloud_fraction(self):
+    def get_avhrr_cloud_fractions(self):
+        """
+        Return an array with all the avhrr cloud fractions read from all the records
+        of the file.
+        """
+
         mdrs = self.get_mdrs()
         avhrr_cloud_fraction_list = [mdr.GEUMAvhrr1BCldFrac.T for mdr in mdrs]
         return np.concatenate(avhrr_cloud_fraction_list)
 
-    def get_land_fraction(self):
+    def get_land_fractions(self):
+        """
+        Return an array with all the land fractions read from all the records
+        of the file.
+        """
+
         mdrs = self.get_mdrs()
         avhrr_cloud_fraction_list = [mdr.GEUMAvhrr1BLandFrac.T for mdr in mdrs]
         return np.concatenate(avhrr_cloud_fraction_list)
@@ -314,9 +457,3 @@ class IasiL1cNativeFile(object):
                                 file_name,
                                 data_type,
                                 shape)
-
-
-
-
-if __name__ == '__main__':
-    iasi_file = IasiL1cNativeFile(IASI_FILENAME)

@@ -1,3 +1,5 @@
+from __future__ import division
+
 from struct import unpack
 from numpy import (fromstring, dtype, int8, uint8, int32, uint32, zeros, array,
                    meshgrid, argmax, max)
@@ -9,7 +11,7 @@ def where_greater(a, b):
     """
     Given two array, a and b, return a new array c with the same
     length as b such that c[i] is the index of the first element
-    of a to be biggest (or equal) than b[i] (if there is not such
+    of a to be greater (or equal) than b[i] (if there is not such
     an element, it returns -1 on that entry) 
     """
     
@@ -23,7 +25,7 @@ def where_greater(a, b):
     return output
 
 def read_vint(raw_data):
-    n_elements = len(raw_data) / 5
+    n_elements = len(raw_data) // 5
     as_uint_data = fromstring(raw_data, dtype=dui).reshape(n_elements, 5)
     mantissa = zeros((n_elements,), dtype = uint32)
     for i in range(4):
@@ -31,7 +33,7 @@ def read_vint(raw_data):
     return int32(mantissa) / 10.0**int8(as_uint_data[:,0])
 
 def read_short_date(raw_data):
-    n_elements = len(raw_data) / 6
+    n_elements = len(raw_data) // 6
     format_string = ">"
     for i in range(n_elements):
         format_string += "HI"
