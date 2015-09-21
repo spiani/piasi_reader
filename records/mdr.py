@@ -1,10 +1,29 @@
+"""
+Piasi-reader: a library to read and convert the native IASI L1C files
+Copyright (C) 2015  Stefano Piani
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3.0 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+"""
+
 from struct import unpack
 from numpy import fromstring, dtype, int8, int16, int32, uint8, uint16, uint32, bool_, arange, newaxis, zeros, float64
-from utilities import read_vint, read_short_date, where_greater
 
-from records.record_content import interpreted_content
-from records.grh import GRH
-from parameters import AMCO, AMLI, CCD, IMLI, IMCO, NBK, NCL, PN, SB, SGI, SNOT, SS
+from piasi_reader.utilities import read_vint, read_short_date, where_greater
+from piasi_reader.records.record_content import interpreted_content
+from piasi_reader.records.grh import GRH
+from piasi_reader.parameters import AMCO, AMLI, CCD, IMLI, IMCO, NBK, NCL, PN, SB, SGI, SNOT, SS
 
 class MDR(interpreted_content):
 

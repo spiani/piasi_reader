@@ -1,15 +1,34 @@
+"""
+Piasi-reader: a library to read and convert the native IASI L1C files
+Copyright (C) 2015  Stefano Piani
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3.0 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+"""
+
 from __future__ import print_function, division
 
 import numpy as np
 from os.path import getsize, join
 
-from records.record_content import uninterpreted_content
-from records.grh import GRH
-from records.mdr import MDR
-from records.mphr import MPHR
-from records.giadr import GIADR_quality, GIADR_scale_factors
+from piasi_reader.records.record_content import uninterpreted_content
+from piasi_reader.records.grh import GRH
+from piasi_reader.records.mdr import MDR
+from piasi_reader.records.mphr import MPHR
+from piasi_reader.records.giadr import GIADR_quality, GIADR_scale_factors
 
-from parameters import PN, SNOT
+from piasi_reader.parameters import PN, SNOT
 
 
 class MphrNotFoundException(Exception):
