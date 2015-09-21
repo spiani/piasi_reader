@@ -22,13 +22,13 @@ from __future__ import print_function, division
 import numpy as np
 from os.path import getsize, join
 
-from piasi_reader.records.record_content import uninterpreted_content
-from piasi_reader.records.grh import GRH
-from piasi_reader.records.mdr import MDR
-from piasi_reader.records.mphr import MPHR
-from piasi_reader.records.giadr import GIADR_quality, GIADR_scale_factors
+from records.record_content import uninterpreted_content
+from records.grh import GRH
+from records.mdr import MDR
+from records.mphr import MPHR
+from records.giadr import GIADR_quality, GIADR_scale_factors
 
-from piasi_reader.parameters import PN, SNOT
+from parameters import PN, SNOT
 
 
 class MphrNotFoundException(Exception):

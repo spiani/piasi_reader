@@ -312,9 +312,9 @@ class MPHR(interpreted_content):
         
         subsetted_product = data[71]
         subsetted_product_raw = subsetted_product.split('=')[1].strip()
-        if subsetted_product_raw == 'T':
+        if subsetted_product_raw == 'T' or subsetted_product_raw == '1':
             mphr.subsetted_product = True
-        elif subsetted_product_raw == 'F':
+        elif subsetted_product_raw == 'F' or subsetted_product_raw == '0':
             mphr.subsetted_product = False
         else:
             raise ValueError('Invalid value for subsetted product: ' + str(subsetted_product_raw))
