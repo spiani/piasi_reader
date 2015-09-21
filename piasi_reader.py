@@ -414,23 +414,23 @@ class IasiL1cNativeFile(object):
                                 data_type,
                                 shape)
 
-    def save_avhrr_cloud_fraction(self,
+    def save_avhrr_cloud_fractions(self,
                        output_dir = '.',
                        file_name = 'avhrr_cloud_fraction',
                        data_type = None,
                        shape = None):
-        return self.__save_data(self.get_avhrr_cloud_fraction(),
+        return self.__save_data(self.get_avhrr_cloud_fractions(),
                                 output_dir,
                                 file_name,
                                 data_type,
                                 shape)
 
-    def save_land_fraction(self,
+    def save_land_fractions(self,
                        output_dir = '.',
                        file_name = 'land_fraction',
                        data_type = None,
                        shape = None):
-        return self.__save_data(self.get_land_fraction(),
+        return self.__save_data(self.get_land_fractions(),
                                 output_dir,
                                 file_name,
                                 data_type,
