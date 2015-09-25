@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='piasi_reader',
-      version='0.9',
+      version='0.9.1',
       description='A library to read the native IASI L1C files',
       author='Stefano Piani',
       author_email='stefano.piani@exact-lab.it',

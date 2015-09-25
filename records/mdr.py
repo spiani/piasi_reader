@@ -213,7 +213,11 @@ class MDR(interpreted_content):
         increase = SS * PN * SNOT * 2
         GS1cSpect = fromstring(raw_data[offset : offset + increase], dtype=ds).reshape(SNOT, PN, SS).T
         offset += increase
-        mdr.GS1cSpect[0:num_ch,:,:] = GS1cSpect[0:num_ch,:,:] / 10.**rad_sfs[:, newaxis, newaxis]
+        # With the following you have the original data format
+        # with some useless values
+        # mdr.GS1cSpect[0:num_ch,:,:] = GS1cSpect[0:num_ch,:,:] / 10.**rad_sfs[:, newaxis, newaxis]
+        # With this, instead, you have only the real data
+        mdr.GS1cSpect = GS1cSpect[0:num_ch,:,:] / 10.**rad_sfs[:, newaxis, newaxis]
 
         increase = CCD * 100 * 5
         mdr.IDefCovarMatEigenVal1c = read_vint(raw_data[offset : offset + increase]).reshape(100, CCD).T

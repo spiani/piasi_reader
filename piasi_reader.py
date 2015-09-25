@@ -256,7 +256,7 @@ class IasiL1cNativeFile(object):
         """
         mdrs = self.get_mdrs()
         latitudes_list = [mdr.GGeoSondLoc[1,:].T for mdr in mdrs]
-        return np.concatenate(latitudes_list)
+        return np.concatenate(latitudes_list).flatten()
 
     def get_longitudes(self):
         """
@@ -265,7 +265,7 @@ class IasiL1cNativeFile(object):
         """
         mdrs = self.get_mdrs()
         longitudes_list = [mdr.GGeoSondLoc[0,:].T for mdr in mdrs]
-        return np.concatenate(longitudes_list)
+        return np.concatenate(longitudes_list).flatten()
 
     def get_radiances(self):
         """
@@ -274,8 +274,12 @@ class IasiL1cNativeFile(object):
         """
 
         mdrs = self.get_mdrs()
-        radiances_list = [mdr.GS1cSpect for mdr in mdrs]
-        return np.concatenate(radiances_list).T
+        radiances_list = [mdr.GS1cSpect.T for mdr in mdrs]
+        all_radiances =  np.concatenate(radiances_list)
+        rad_size = all_radiances.size
+        num_ch = all_radiances.shape[-1]
+        new_shape = (rad_size // num_ch, num_ch)
+        return all_radiances.reshape(new_shape)
         
     def get_zenith_angles(self):
         """
@@ -284,7 +288,7 @@ class IasiL1cNativeFile(object):
         """
         mdrs = self.get_mdrs()
         zenith_angles_list = [mdr.GGeoSondAnglesMETOP[0,:].T for mdr in mdrs]
-        return np.concatenate(zenith_angles_list)
+        return np.concatenate(zenith_angles_list).flatten()
 
     def get_solar_zenith_angles(self):
         """
@@ -293,7 +297,7 @@ class IasiL1cNativeFile(object):
         """
         mdrs = self.get_mdrs()
         solar_zenith_angles_list = [mdr.GGeoSondAnglesSUN[0,:].T for mdr in mdrs]
-        return np.concatenate(solar_zenith_angles_list)
+        return np.concatenate(solar_zenith_angles_list).flatten()
 
     def get_solar_azimuth_angles(self):
         """
@@ -302,7 +306,7 @@ class IasiL1cNativeFile(object):
         """
         mdrs = self.get_mdrs()
         solar_azimuth_angles_list = [mdr.GGeoSondAnglesSUN[1,:].T for mdr in mdrs]
-        return np.concatenate(solar_azimuth_angles_list)
+        return np.concatenate(solar_azimuth_angles_list).flatten()
 
     def get_avhrr_cloud_fractions(self):
         """
@@ -312,7 +316,7 @@ class IasiL1cNativeFile(object):
 
         mdrs = self.get_mdrs()
         avhrr_cloud_fraction_list = [mdr.GEUMAvhrr1BCldFrac.T for mdr in mdrs]
-        return np.concatenate(avhrr_cloud_fraction_list)
+        return np.concatenate(avhrr_cloud_fraction_list).flatten()
 
     def get_land_fractions(self):
         """
@@ -322,17 +326,17 @@ class IasiL1cNativeFile(object):
 
         mdrs = self.get_mdrs()
         avhrr_cloud_fraction_list = [mdr.GEUMAvhrr1BLandFrac.T for mdr in mdrs]
-        return np.concatenate(avhrr_cloud_fraction_list)
+        return np.concatenate(avhrr_cloud_fraction_list).flatten()
         
     def get_date_day(self):
         mdrs = self.get_mdrs()
         date_day_list = [mdr.GEPSDatIasi[:,0] for mdr in mdrs]
-        return np.concatenate(date_day_list)
+        return np.concatenate(date_day_list).flatten()
 
     def get_date_msec(self):
         mdrs = self.get_mdrs()
         date_msec_list = [mdr.GEPSDatIasi[:,1] for mdr in mdrs]
-        return np.concatenate(date_msec_list)
+        return np.concatenate(date_msec_list).flatten()
 
 
     def __save_data(self, array_data, output_dir, file_name, data_type, shape):
@@ -347,6 +351,8 @@ class IasiL1cNativeFile(object):
 
         if shape is not None:
             assert np.prod(shape) == n_of_elements
+        else:
+            shape = to_save.shape
 
         data_size = str(data_type.itemsize)
         i = 0
@@ -356,9 +362,9 @@ class IasiL1cNativeFile(object):
         
         complete_file_name = file_name + '.' + data_name + data_size
  
-        if shape is not None and len(shape)>1:
+        if len(shape)>1:
             for i in range(1,len(shape)):
-                complete_file_name += '.' + str(i)
+                complete_file_name += '.' + str(shape[i])
 
         file_path = join(output_dir, complete_file_name)
         with open(file_path, 'wb') as fbf_file:
