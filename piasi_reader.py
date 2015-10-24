@@ -21,6 +21,7 @@ from __future__ import print_function, division
 
 import numpy as np
 from os.path import getsize, join
+from os import rename
 
 from records.record_content import uninterpreted_content
 from records.grh import GRH
@@ -49,6 +50,11 @@ class NotSoManyRecordsException(ValueError):
     number is greater than the total number of records
     """
     pass
+    
+class TooSmallThresholdException(ValueError):
+    pass
+
+
 
 class Record(object):
     """
@@ -114,6 +120,10 @@ class Record(object):
         A boolean value that is True if the record is interpreted.
         """
         return self.content.interpreted
+
+    @property
+    def raw(self):
+        return self.grh.raw + self.content.raw
     
     @staticmethod
     def read(f):
@@ -151,6 +161,7 @@ class IasiL1cNativeFile(object):
     def __init__(self, filename):
         self.__record_list = []
         self.__size = getsize(filename)
+        self.__data_read = False
 
         # Read content from the file
         bytes_read = 0
@@ -159,7 +170,6 @@ class IasiL1cNativeFile(object):
                 rcd = Record.read(iasi_file)
                 self.__record_list.append(rcd)
                 bytes_read += rcd.size
-        self.__read_mdrs()
 
     @property
     def size(self):
@@ -240,7 +250,7 @@ class IasiL1cNativeFile(object):
         """
         return [r.content for r in self.__record_list if r.type == "MDR"]
 
-    def __read_mdrs(self):
+    def read_mdrs(self):
         mdr_record_positions = [i for i in range(self.n_of_records) 
                                   if self.__record_list[i].type == 'MDR']
         giadr = self.get_giadr_scalefactors()
@@ -248,12 +258,74 @@ class IasiL1cNativeFile(object):
             mdr_record = self.__record_list[i]
             new_content = MDR.read(mdr_record.content, mdr_record.grh, giadr)
             self.__record_list[i] = Record(mdr_record.grh, new_content)
+        self.__data_read = True
+    
+    def split(self, threshold, split_files_names = 'split_$F', 
+              output_dir = '.', temp_name = 'temp'):
+        # Get the size of the non-mdr part of the file
+        non_mdr_list = [r for r in self if r.type != 'MDR']
+        non_mdr_size = sum([r.size for r in non_mdr_list])
+
+        # Get the size of the biggest mdr record
+        mdr_list = [r for r in self if r.type == 'MDR']
+        msr_max_size = max([r.size for r in mdr_list])
+
+        if threshold < non_mdr_size + msr_max_size:
+            raise TooSmallThresholdException('The file can not be splitted in the '
+                                             'desidered size')
+        split_file_index = 0
+        file_times = []
+
+        # Prepare the first file
+        file_size = 0
+        current_file = open(join(output_dir, temp_name), 'w')
+        for r in non_mdr_list:
+            current_file.write(r.raw)
+            file_size += r.size
+
+        for mdr_record in mdr_list:
+            if file_size + mdr_record.size > threshold:
+                current_file.close()
+                file_start_time = min(file_times)
+                file_end_time = max(file_times)
+
+                file_name = split_files_names.replace('$F', str(split_file_index))
+                file_name = file_name.replace('$SD', file_start_time.strftime('%Y%m%d%H%M%S') + 'Z')
+                file_name = file_name.replace('$ED', file_end_time.strftime('%Y%m%d%H%M%S') + 'Z')
+                rename(join(output_dir, temp_name), join(output_dir, file_name))
+                file_size = 0
+                file_times = []
+                split_file_index += 1
+                current_file = open(join(output_dir, temp_name), 'w')
+                for r in non_mdr_list:
+                    current_file.write(r.raw)
+                    file_size += r.size
+
+            interpreted_mdr = MDR.read(mdr_record.content.raw,
+                                       mdr_record.grh,
+                                       self.get_giadr_scalefactors())
+            file_times.extend(interpreted_mdr.get_times())
+            current_file.write(mdr_record.raw)
+            file_size += mdr_record.size
+
+        current_file.close()
+        file_start_time = min(file_times)
+        file_end_time = max(file_times)
+        file_name = split_files_names.replace('$F', str(split_file_index))
+        file_name = file_name.replace('$SD', file_start_time.strftime('%Y%m%d%H%M%S') + 'Z')
+        file_name = file_name.replace('$ED', file_end_time.strftime('%Y%m%d%H%M%S') + 'Z')
+        rename(join(output_dir, temp_name), join(output_dir, file_name))
+
+    def __iter__(self):
+        return self.__record_list.__iter__()
 
     def get_latitudes(self):
         """
         Return a numpy array with all the latitudes read from all the records
         of the file.
         """
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         latitudes_list = [mdr.GGeoSondLoc[1,:].T for mdr in mdrs]
         return np.concatenate(latitudes_list).flatten()
@@ -263,6 +335,8 @@ class IasiL1cNativeFile(object):
         Return a numpy array with all the longitudes read from all the records
         of the file.
         """
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         longitudes_list = [mdr.GGeoSondLoc[0,:].T for mdr in mdrs]
         return np.concatenate(longitudes_list).flatten()
@@ -272,7 +346,8 @@ class IasiL1cNativeFile(object):
         Return a numpy array with all the radiances read from all the records
         of the file.
         """
-
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         radiances_list = [mdr.GS1cSpect.T for mdr in mdrs]
         all_radiances =  np.concatenate(radiances_list)
@@ -286,6 +361,8 @@ class IasiL1cNativeFile(object):
         Return an array with all the zenith angles read from all the records
         of the file.
         """
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         zenith_angles_list = [mdr.GGeoSondAnglesMETOP[0,:].T for mdr in mdrs]
         return np.concatenate(zenith_angles_list).flatten()
@@ -295,6 +372,8 @@ class IasiL1cNativeFile(object):
         Return an array with all the solar zenith angles read from all the records
         of the file.
         """
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         solar_zenith_angles_list = [mdr.GGeoSondAnglesSUN[0,:].T for mdr in mdrs]
         return np.concatenate(solar_zenith_angles_list).flatten()
@@ -304,6 +383,8 @@ class IasiL1cNativeFile(object):
         Return an array with all the solar azimuth angles read from all the records
         of the file.
         """
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         solar_azimuth_angles_list = [mdr.GGeoSondAnglesSUN[1,:].T for mdr in mdrs]
         return np.concatenate(solar_azimuth_angles_list).flatten()
@@ -313,7 +394,8 @@ class IasiL1cNativeFile(object):
         Return an array with all the avhrr cloud fractions read from all the records
         of the file.
         """
-
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         avhrr_cloud_fraction_list = [mdr.GEUMAvhrr1BCldFrac.T for mdr in mdrs]
         return np.concatenate(avhrr_cloud_fraction_list).flatten()
@@ -323,21 +405,28 @@ class IasiL1cNativeFile(object):
         Return an array with all the land fractions read from all the records
         of the file.
         """
-
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         avhrr_cloud_fraction_list = [mdr.GEUMAvhrr1BLandFrac.T for mdr in mdrs]
         return np.concatenate(avhrr_cloud_fraction_list).flatten()
         
     def get_date_day(self):
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         date_day_list = [mdr.GEPSDatIasi[:,0] for mdr in mdrs]
         return np.concatenate(date_day_list).flatten()
 
     def get_date_msec(self):
+        if not self.__data_read:
+            self.read_mdrs()
         mdrs = self.get_mdrs()
         date_msec_list = [mdr.GEPSDatIasi[:,1] for mdr in mdrs]
         return np.concatenate(date_msec_list).flatten()
 
+    def get_channels(self):
+        return np.linspace(645, 2760, 8461)
 
     def __save_data(self, array_data, output_dir, file_name, data_type, shape):
 
@@ -478,6 +567,17 @@ class IasiL1cNativeFile(object):
                        data_type = None,
                        shape = None):
         return self.__save_data(self.get_date_msec(),
+                                output_dir,
+                                file_name,
+                                data_type,
+                                shape)
+
+    def save_channels(self,
+                      output_dir = '.',
+                      file_name = 'wavenumber',
+                      data_type = None,
+                      shape = (1,8461)):
+        return self.__save_data(self.get_channels(),
                                 output_dir,
                                 file_name,
                                 data_type,

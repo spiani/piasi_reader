@@ -230,7 +230,7 @@ class MDR(interpreted_content):
         increase = PN * SNOT * 4
         mdr.GCcsRadAnalNbClass = fromstring(raw_data[offset : offset + increase], dtype=dt).reshape(SNOT, PN).T 
         offset += increase
-        
+
         increase = NCL * PN * SNOT * 5
         mdr.GCcsRadAnalWgt = read_vint(raw_data[offset : offset + increase]).reshape(SNOT, PN, NCL).T
         offset+= increase
@@ -304,7 +304,10 @@ class MDR(interpreted_content):
 
         return mdr
 
-
+    def get_times(self):
+        from datetime import datetime, timedelta
+        start_day = datetime(2000,1,1)
+        return [start_day + timedelta(days=int(days), milliseconds=int(msec)) for days,msec in self.GEPSDatIasi]
 
     def __str__(self):
         output  = "============ IASI MDR 1C ============\n"
@@ -317,7 +320,7 @@ class MDR(interpreted_content):
         output += "GEPS LocIasiAvhrr IIS =\n" + str(self.GEPSLocIasiAvhrr_IIS) + "\n"
         output += "OBT =\n" + str(self.OBT) + "\n"
         output += "ONBoard UTC =\n" + str(self.ONBoardUTC) + "\n"
-        output += "GEPS Dat Iasi =\n" + str(self.GEPSDatIasi) + "\n"
+        output += "GEPS Date Iasi =\n" + str(self.GEPSDatIasi) + "\n"
         output += "GIsfLinOrigin = " + str(self.GIsfLinOrigin) + "\n"
         output += "GIsfColOrigin = " + str(self.GIsfColOrigin) + "\n"
         output += "GIsfPds1 = " + str(self.GIsfPds1) + "\n"

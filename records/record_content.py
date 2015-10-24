@@ -27,14 +27,25 @@ if py_version < 3:
         @property
         def interpreted(self):
             return False
+
+        @property
+        def raw(self):
+            return self
 else:
     class uninterpreted_content(bytes):
         @property
         def interpreted(self):
             return False
 
+        @property
+        def raw(self):
+            return self
+
 class interpreted_content(object):
     @property
     def interpreted(self):
         return True
 
+    @property
+    def raw(self):
+        raise NotImplementedError

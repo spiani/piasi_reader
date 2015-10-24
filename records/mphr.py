@@ -28,12 +28,17 @@ py_version = int(version_info[0])
 
 class MPHR(interpreted_content):
 
+    @property
+    def raw(self):
+        return self.__raw
+
     @staticmethod
     def read_mphr(f, grh):
         mphr = MPHR()
 
         data_size = grh.record_size - GRH.size
         raw_data = f.read(data_size)
+        mphr.__raw = raw_data
         if py_version > 2:
             raw_data = raw_data.decode('ASCII')
         data = raw_data.split('\n')

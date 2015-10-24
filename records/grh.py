@@ -17,7 +17,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from struct import unpack
+from struct import unpack, pack
 
 grh_type_dict = { 1 : 'MPHR',
                   2 : 'SPHR',
@@ -75,3 +75,15 @@ class GRH(object):
         output += 'Record stop time (msec):  ' + str(self.record_start_time_msec)
         return output
 
+    @property
+    def raw(self):
+        return pack('>BBBBIHIHI', self.__record_class,
+                                  self.instrument_group,
+                                  self.record_subclass,
+                                  self.record_subclass_version,
+                                  self.record_size,
+                                  self.record_start_time_day,
+                                  self.record_start_time_msec,
+                                  self.record_stop_time_day,
+                                  self.record_stop_time_msec
+                                 )

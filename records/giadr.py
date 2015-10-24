@@ -27,10 +27,15 @@ from piasi_reader.parameters import PN, IMLI, IMCO
 
 class GIADR_quality(interpreted_content):
 
+    @property
+    def raw(self):
+        return self.__raw
+
     @staticmethod
     def read(f, grh):
         giadr = GIADR_quality()
         raw_data = f.read(grh.record_size - GRH.size)
+        giadr.__raw = raw_data
 
         dt = dtype(int32)
         dt = dt.newbyteorder('>')
@@ -110,10 +115,15 @@ class GIADR_quality(interpreted_content):
 
 class GIADR_scale_factors(interpreted_content):
 
+    @property
+    def raw(self):
+        return self.__raw
+
     @staticmethod
     def read(f, grh):
         giadr = GIADR_scale_factors()
         raw_data = f.read(grh.record_size - GRH.size)
+        giadr.__raw = raw_data
 
         ds = dtype(int16)
         ds = ds.newbyteorder('>')
