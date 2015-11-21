@@ -23,13 +23,13 @@ import numpy as np
 from os.path import getsize, join
 from os import rename
 
-from records.record_content import uninterpreted_content
-from records.grh import GRH
-from records.mdr import MDR
-from records.mphr import MPHR
-from records.giadr import GIADR_quality, GIADR_scale_factors
+from piasi_reader.records.record_content import uninterpreted_content
+from piasi_reader.records.grh import GRH
+from piasi_reader.records.mdr import MDR
+from piasi_reader.records.mphr import MPHR
+from piasi_reader.records.giadr import GIADR_quality, GIADR_scale_factors
 
-from parameters import PN, SNOT
+from piasi_reader.parameters import PN, SNOT
 
 
 class MphrNotFoundException(Exception):
@@ -416,14 +416,14 @@ class IasiL1cNativeFile(object):
             self.read_mdrs()
         mdrs = self.get_mdrs()
         date_day_list = [mdr.GEPSDatIasi[:,0] for mdr in mdrs]
-        return np.concatenate(date_day_list).flatten()
+        return np.repeat(np.concatenate(date_day_list), 4)
 
     def get_date_msec(self):
         if not self.__data_read:
             self.read_mdrs()
         mdrs = self.get_mdrs()
         date_msec_list = [mdr.GEPSDatIasi[:,1] for mdr in mdrs]
-        return np.concatenate(date_msec_list).flatten()
+        return np.repeat(np.concatenate(date_msec_list), 4)
 
     def get_channels(self):
         return np.linspace(645, 2760, 8461)
