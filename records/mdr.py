@@ -206,15 +206,15 @@ class MDR(interpreted_content):
 
         num_ch = mdr.IDefNsLast1b - mdr.IDefNsFirst1b + 1
         
-        pos = where_greater(giadr_sf.IDefScaleSondNslast, arange(num_ch) + mdr.IDefNsFirst1b - 1)
+        pos = where_greater(giadr_sf.IDefScaleSondNslast, arange(num_ch) + mdr.IDefNsFirst1b)
         rad_sfs = giadr_sf.IDefScaleSondScaleFactor[pos]
 
-        mdr.GS1cSpect = zeros((SS, PN, SNOT), dtype=float64)
         increase = SS * PN * SNOT * 2
         GS1cSpect = fromstring(raw_data[offset : offset + increase], dtype=ds).reshape(SNOT, PN, SS).T
         offset += increase
-        # With the following you have the original data format
+        # With the following two lines you have the original data format
         # with some useless values
+        # mdr.GS1cSpect = zeros((SS, PN, SNOT), dtype=float64)
         # mdr.GS1cSpect[0:num_ch,:,:] = GS1cSpect[0:num_ch,:,:] / 10.**rad_sfs[:, newaxis, newaxis]
         # With this, instead, you have only the real data
         mdr.GS1cSpect = GS1cSpect[0:num_ch,:,:] / 10.**rad_sfs[:, newaxis, newaxis]

@@ -38,7 +38,7 @@ def where_greater(a, b):
     comparisons = (a >= M[1])
     output = argmax(comparisons, axis=1)
     # Now, when every element in a is smaller than the elements in b,
-    # we have a 0 as entry. Now we will put that entries to -1
+    # we have 0 as entry. Now we will put that entries to -1
     fix_empty_entries = max(comparisons, axis=1) - 1
     output += fix_empty_entries
     return output
