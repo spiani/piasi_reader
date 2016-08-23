@@ -2,8 +2,12 @@
 
 from distutils.core import setup
 
+from __version import version
+
+version_str = '{}.{}.{}'.format(version[0], version[1], version[2])
+
 setup(name='piasi_reader',
-      version='0.9.6',
+      version=version_str,
       description='A library to read the native IASI L1C files',
       author='Stefano Piani',
       author_email='stefano.piani@exact-lab.it',

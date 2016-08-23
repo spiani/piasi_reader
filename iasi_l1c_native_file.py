@@ -64,7 +64,7 @@ class Record(object):
       - a content, i.e. the real data
 
     While in principle it is possible to create a record calling the __init__ method
-    and passing a gdr object and the content, usually a record is created buy the read
+    and passing a gdr object and the content, usually a record is created by the read
     method starting from a file
 
     Args:
@@ -129,7 +129,7 @@ class Record(object):
     def read(f):
         """
         Create a Record object starting from a file descriptor. If the
-        record do not requires other informations, it will also be
+        record does not require other informations, it will also be
         interpreted (for example for the mphr record). Otherwise, it
         will be returned as not interpreted (this is expecially true for
         the mdr records which require a GIADR scalefactor record)
@@ -424,6 +424,22 @@ class IasiL1cNativeFile(object):
         mdrs = self.get_mdrs()
         date_msec_list = [mdr.GEPSDatIasi[:,1] for mdr in mdrs]
         return np.repeat(np.concatenate(date_msec_list), 4)
+
+    def get_obs_times(self):
+        """
+        Combine together the date_msec and the date_day array and return
+        an array of datetime64 objects that represent the time when the
+        observations have been collected
+        """
+        msec = self.get_date_msec().astype(np.int64)
+        days = self.get_date_day().astype(np.int64)
+
+        msec.dtype = 'timedelta64[ms]'
+        days.dtype = 'timedelta64[D]'
+
+        start_time = np.datetime64('2000-01-01T00:00:00Z')
+
+        return start_time + days + msec
 
     def get_channels(self):
         return np.linspace(645, 2760, 8461)
