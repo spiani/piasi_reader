@@ -1,5 +1,5 @@
 # Piasi_reader
-A Python library to read the L1C IASI native file
+A Python library to read the L1C IASI native files
 
 This library offers a pythonic interface to read the data
 produced by the IASI interferometers (in native format).
