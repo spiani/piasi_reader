@@ -23,6 +23,12 @@ cd piasi_reader
 pip install .
 ```
 
+If you lack the permission to install packages globally with pip, you can add the
+`--user` flag
+```
+pip install --user .
+```
+
 ## Usage
 Import the library
 
