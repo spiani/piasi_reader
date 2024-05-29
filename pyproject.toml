@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "piasi_reader"
+description = "A library to read the native IASI L1C files"
+version = "0.9.8"
+
+readme = "README.md"
+license.file = "LICENSE"
+
+authors = [
+  { name = "Stefano Piani", email = "spiani@ogs.it" },
+]
+maintainers = [
+  { name = "Stefano Piani", email = "spiani@ogs.it" },
+]
+
+requires-python = ">=3.5"
+dependencies = [
+  "numpy",
+]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.5",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.urls]
+Homepage = "https://github.com/spiani/piasi_reader"

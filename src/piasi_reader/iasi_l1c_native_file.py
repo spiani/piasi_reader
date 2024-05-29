@@ -50,7 +50,7 @@ class NotSoManyRecordsException(ValueError):
     number is greater than the total number of records
     """
     pass
-    
+
 class TooSmallThresholdException(ValueError):
     pass
 
@@ -89,7 +89,7 @@ class Record(object):
           - MDR
         """
         return self.__grh.record_class
-    
+
     @property
     def size(self):
         """
@@ -124,7 +124,7 @@ class Record(object):
     @property
     def raw(self):
         return self.grh.raw + self.content.raw
-    
+
     @staticmethod
     def read(f):
         """
@@ -221,7 +221,7 @@ class IasiL1cNativeFile(object):
             An object of the Record class
         """
 
-        giadr_records = [rcd for rcd in self.__record_list 
+        giadr_records = [rcd for rcd in self.__record_list
                          if rcd.type == 'GIADR' and rcd.grh.record_subclass == 0]
         if len(giadr_records) == 0:
             raise GiadrQualityNotFoundException
@@ -235,12 +235,12 @@ class IasiL1cNativeFile(object):
             An object of the Record class
         """
 
-        giadr_records = [rcd for rcd in self.__record_list 
+        giadr_records = [rcd for rcd in self.__record_list
                          if rcd.type == 'GIADR' and rcd.grh.record_subclass == 1]
         if len(giadr_records) == 0:
             raise GiadrScalefactorsNotFoundException
         return giadr_records[0].content
-    
+
     def get_mdrs(self):
         """
         Return a list of all the records of mdr type
@@ -251,7 +251,7 @@ class IasiL1cNativeFile(object):
         return [r.content for r in self.__record_list if r.type == "MDR"]
 
     def read_mdrs(self):
-        mdr_record_positions = [i for i in range(self.n_of_records) 
+        mdr_record_positions = [i for i in range(self.n_of_records)
                                   if self.__record_list[i].type == 'MDR']
         giadr = self.get_giadr_scalefactors()
         for i in mdr_record_positions:
@@ -259,8 +259,8 @@ class IasiL1cNativeFile(object):
             new_content = MDR.read(mdr_record.content, mdr_record.grh, giadr)
             self.__record_list[i] = Record(mdr_record.grh, new_content)
         self.__data_read = True
-    
-    def split(self, threshold, split_files_names = 'split_$F', 
+
+    def split(self, threshold, split_files_names = 'split_$F',
               output_dir = '.', temp_name = 'temp'):
         # Get the size of the non-mdr part of the file
         non_mdr_list = [r for r in self if r.type != 'MDR']
@@ -355,7 +355,7 @@ class IasiL1cNativeFile(object):
         num_ch = all_radiances.shape[-1]
         new_shape = (rad_size // num_ch, num_ch)
         return all_radiances.reshape(new_shape)
-        
+
     def get_zenith_angles(self):
         """
         Return an array with all the zenith angles read from all the records
@@ -410,7 +410,7 @@ class IasiL1cNativeFile(object):
         mdrs = self.get_mdrs()
         avhrr_cloud_fraction_list = [mdr.GEUMAvhrr1BLandFrac.T for mdr in mdrs]
         return np.concatenate(avhrr_cloud_fraction_list).flatten()
-        
+
     def get_date_day(self):
         if not self.__data_read:
             self.read_mdrs()
@@ -451,7 +451,7 @@ class IasiL1cNativeFile(object):
             data_type = to_save.dtype
         else:
             to_save = array_data.astype(data_type)
-        
+
         n_of_elements = to_save.size
 
         if shape is not None:
@@ -464,16 +464,16 @@ class IasiL1cNativeFile(object):
         while not data_type.name[i:].isdigit():
             i+=1
         data_name = data_type.name[:i].replace('float', 'real')
-        
+
         complete_file_name = file_name + '.' + data_name + data_size
- 
+
         if len(shape)>1:
             for i in range(1,len(shape)):
                 complete_file_name += '.' + str(shape[i])
 
         file_path = join(output_dir, complete_file_name)
         with open(file_path, 'wb') as fbf_file:
-            to_save.tofile(fbf_file) 
+            to_save.tofile(fbf_file)
 
         return True
 
