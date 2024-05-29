@@ -31,9 +31,9 @@ def where_greater(a, b):
     Given two array, a and b, return a new array c with the same
     length as b such that c[i] is the index of the first element
     of a to be greater (or equal) than b[i] (if there is not such
-    an element, it returns -1 on that entry) 
+    an element, it returns -1 on that entry)
     """
-    
+
     M = meshgrid(a,b)
     comparisons = (a >= M[1])
     output = argmax(comparisons, axis=1)

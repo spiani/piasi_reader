@@ -16,18 +16,18 @@ Clone this repository with the following command:
 git clone git@github.com:spiani/piasi_reader.git
 ```
 
-and then run the install script
+and then install the software using `pip` (the Package Installer for Python):
 
 ```
 cd piasi_reader
-python setup.py install
+pip install .
 ```
 
 ## Usage
 Import the library
 
 ```
-from piasi_reader.iasi_l1c_native_file import IasiL1cNativeFile
+from piasi_reader import IasiL1cNativeFile
 ```
 
 From there, you can create a `IasiL1cNativefile` object starting
